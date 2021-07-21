@@ -1,0 +1,65 @@
+import requests
+import openpyxl
+
+# 实例化一个工作簿
+wb = openpyxl.Workbook()
+# 创建工作表
+sheet = wb.active
+# 获取工作活动表
+sheet.title = 'qq.com'
+# 将工作表重命名
+column_name = ['歌曲名', '所属专辑', '播放链接']
+sheet.append(column_name)
+
+start_url = "https://c.y.qq.com/soso/fcgi-bin/client_search_cp"
+choice = input("请输入你想查询的歌手名字: ")
+
+# 设置循环,根据需求爬取页数
+for x in range(1, 4):
+    song_params = {
+        'ct': '24',
+        'qqmusic_ver': '1298',
+        'new_json': '1',
+        'remoteplace': 'txt.yqq.song',
+        'searchid': '58003395930721843',
+        't': '0',
+        'aggr': '1',
+        'cr': '1',
+        'catZhida': '1',
+        'lossless': '0',
+        'flag_qc': '0',
+        'p': str(x),
+        'n': '10',
+        'w': choice,
+        'g_tk_new_20200303': '5381',
+        'g_tk': '5381',
+        'loginUin': '0',
+        'hostUin': '0',
+        'format': 'json',
+        'inCharset': 'utf8',
+        'outCharset': 'utf - 8',
+        'notice': '0',
+        'platform': 'yqq.json',
+        'needNewCode': '0'
+    }
+    headers = {
+        'origin': 'https://y.qq.com',
+        'referer': 'https://y.qq.com/portal/search.html',
+        'user - agent': 'Mozilla / 5.0(Windows NT 10.0;Win64;x64) AppleWebKit / 537.36(KHTML, likeGecko) Chrome / 91.0.4472.124Safari / 537.36Edg / 91.0.864.64'
+    }
+    res = requests.get(url=start_url, headers=headers, params=song_params)
+    try:
+        if res.status_code == 200:
+            json_res = res.json()
+            list_music = json_res['data']['song']['list']
+            for music in list_music:
+                name = music['name']
+                album = music['album']['name']
+                music_link = "https://y.qq.com/n/yqq/song/" + str(music['mid'])+".html"
+                sheet.append([name, album, music_link])
+            wb.save('qq_music.xlsx')
+            wb.close()
+        else:
+            print("请求失败")
+    except Exception as error:
+        print(error)
